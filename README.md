@@ -9,10 +9,10 @@ Dépôt séparé de [Notes de frais](https://github.com/samonnicolas-lab/Note_de
 commune reliera les deux outils plus tard ; l'authentification reste indépendante
 entre les deux (pas de SSO en V1).
 
-Ce dépôt correspond au **socle technique** du projet : authentification, modèle
-de données et écran de contrats sont fonctionnels ; le calendrier, l'export
-PDF/Excel et le paramétrage avancé restent à construire (voir « Prochaines
-étapes » ci-dessous).
+Fonctionnel de bout en bout : authentification, contrats, et calendrier
+(vues mensuelle/semaine, sélection multiple, jours fériés officiels, solde
+de repos calculé). L'export PDF/Excel et le paramétrage avancé restent à
+construire (voir « Prochaines étapes » ci-dessous).
 
 ## Stack
 
@@ -77,12 +77,11 @@ externe : `node scripts/generate-icons.mjs`.
 
 ## Prochaines étapes
 
-- Brancher le calendrier (vue mensuelle avec n° de semaine, vue semaine,
-  sélection multiple, tiroir de saisie par demi-journée) validé sous forme de
-  prototype avant ce socle, en lecture/écriture sur `jours_declares`.
-- Fonction serverless `jours-feries` qui appelle `calendrier.api.gouv.fr` par
-  zone/année et met le résultat en cache (table ou cache mémoire).
-- Calcul et affichage du solde de jours de repos (formule : jours calendaires
-  − week-ends − fériés ouvrés − congés − forfait).
 - Export PDF (calendrier visuel) et Excel (données + récap mensuel).
-- Écran de réglages complet du contrat (édition, historique multi-contrats).
+- Jours fériés propres à l'entreprise : saisie (table `jours_feries_entreprise`
+  déjà en place) + prise en compte dans le solde de repos.
+- Écran de réglages complet du contrat (édition, historique/sélecteur
+  multi-contrats — le contrat actif est pour l'instant choisi automatiquement).
+- Vérifier en conditions réelles (Google Cloud + Supabase configurés) : le
+  calendrier n'a été testé qu'avec des appels API mockés faute d'identifiants
+  dans cet environnement.
