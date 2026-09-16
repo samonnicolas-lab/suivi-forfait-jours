@@ -269,3 +269,530 @@ a {
 .contrat-item .employeur {
   font-weight: 600;
 }
+
+/* ---- Calendrier (vue mensuelle / semaine) ---- */
+
+.cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cal-period {
+  font-weight: 600;
+  font-size: 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.cal-period .weeknum {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.cal-navbtns {
+  display: flex;
+  gap: 6px;
+}
+
+.cal-navbtns button {
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 7px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.cal-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 8px;
+}
+
+.cal-stat {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 9px 11px;
+  box-shadow: var(--shadow);
+}
+
+.cal-stat .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 3px;
+}
+
+.cal-stat .value {
+  font-weight: 700;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-stat.solde {
+  border-color: var(--color-primary);
+}
+
+.cal-stat.solde .value {
+  color: var(--color-primary-dark);
+}
+
+.ms-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.msbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  border-radius: 7px;
+  padding: 6px 11px 6px 8px;
+  cursor: pointer;
+}
+
+.msbtn-box {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  border: 1.5px solid var(--color-text-muted);
+  display: inline-block;
+}
+
+.msbtn.active {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  background: var(--color-primary-soft);
+}
+
+.msbtn.active .msbtn-box {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.ms-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.selbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 66px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.1);
+  padding: 12px 16px;
+  z-index: 15;
+}
+
+.selbar-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.selbar-inner > span {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.selbar-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: 30px repeat(7, 1fr);
+  gap: 4px;
+}
+
+.month-grid .dow {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding-bottom: 6px;
+}
+
+.wk-num {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--color-border);
+}
+
+.wk-num.selectable {
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.wk-num.selectable:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.day {
+  position: relative;
+  min-height: 56px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  padding: 4px 5px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.day.weekend {
+  background: var(--color-bg);
+}
+
+.day.outside {
+  opacity: 0.35;
+}
+
+.day.today .daynum {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 5px;
+  padding: 0 5px;
+  align-self: flex-start;
+}
+
+.day.msel {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+  background: var(--color-primary-soft);
+}
+
+.daynum {
+  font-size: 11.5px;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.day .check {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1.5px solid var(--color-text-muted);
+  background: var(--color-surface);
+}
+
+.day.msel .check {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.day.msel .check::after {
+  content: "✓";
+  color: #fff;
+  font-size: 10px;
+  display: block;
+  text-align: center;
+  line-height: 13px;
+}
+
+.halves {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.halves .half {
+  flex: 1;
+  border-radius: 4px;
+}
+
+.day-label {
+  font-size: 9.5px;
+  line-height: 1.2;
+}
+
+.ferie-tag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.week-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.week-row {
+  display: grid;
+  grid-template-columns: 18px 84px 1fr;
+  gap: 12px;
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
+.week-row.weekend {
+  background: var(--color-bg);
+}
+
+.week-row.msel {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+  background: var(--color-primary-soft);
+}
+
+.wcheck {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1.5px solid var(--color-text-muted);
+  background: var(--color-surface);
+  visibility: hidden;
+}
+
+.week-list.ms-active .wcheck {
+  visibility: visible;
+}
+
+.week-row.msel .wcheck {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  position: relative;
+}
+
+.week-row.msel .wcheck::after {
+  content: "✓";
+  color: #fff;
+  font-size: 11px;
+  position: absolute;
+  inset: 0;
+  text-align: center;
+  line-height: 15px;
+}
+
+.week-row .wd {
+  display: flex;
+  flex-direction: column;
+}
+
+.week-row .wd .name {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.week-row .wd .num {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.week-row.today .wd .num {
+  color: var(--color-primary-dark);
+}
+
+.halves-row {
+  display: flex;
+  gap: 6px;
+  height: 30px;
+  border-radius: 7px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.halves-row .half {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.week-ferie {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.legend .item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend .swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+}
+
+.drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.14);
+  padding: 14px 16px calc(78px + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+}
+
+.drawer-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.drawer-head .ddate {
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: capitalize;
+}
+
+.drawer-close {
+  border: none;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.gran-toggle {
+  display: inline-flex;
+  background: var(--color-bg);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.gran-toggle button {
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 6px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.gran-toggle button.active {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow);
+}
+
+.half-block {
+  margin-bottom: 10px;
+}
+
+.half-block .htitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 7px;
+  padding: 6px 11px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+}
+
+.chip.active {
+  border-color: currentColor;
+}
+
+.ferie-note {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 480px) {
+  .month-grid {
+    grid-template-columns: 22px repeat(7, 1fr);
+    gap: 3px;
+  }
+  .day {
+    min-height: 46px;
+    padding: 3px 3px;
+  }
+  .day-label {
+    display: none;
+  }
+  .week-row {
+    grid-template-columns: 16px 68px 1fr;
+    gap: 8px;
+  }
+}

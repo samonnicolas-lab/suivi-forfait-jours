@@ -42,4 +42,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+
+  joursFeries: (zone, annee) =>
+    request(`/jours-feries?zone=${encodeURIComponent(zone)}&annee=${annee}`),
+
+  listerJoursDeclares: (contratId, from, to) =>
+    request(`/jours-declares?contratId=${encodeURIComponent(contratId)}&from=${from}&to=${to}`),
+
+  enregistrerJoursDeclares: (contratId, jours) =>
+    request("/jours-declares", {
+      method: "POST",
+      body: JSON.stringify({ contratId, jours }),
+    }),
 };
