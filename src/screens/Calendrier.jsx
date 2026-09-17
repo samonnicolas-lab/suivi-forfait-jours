@@ -149,8 +149,17 @@ export default function Calendrier() {
   const joursDuMois = [];
   { let d = new Date(y, m, 1); while (d.getMonth() === m) { joursDuMois.push(d); d = addDays(d, 1); } }
 
+  // Si le contrat démarre (ou se termine) en cours d'année, le total annuel
+  // ne porte que sur la période réellement couverte par le contrat.
+  const contratDebut = new Date(contratActif.date_debut);
+  const contratFin = contratActif.date_fin ? new Date(contratActif.date_fin) : null;
+  const debutAnnee = new Date(y, 0, 1);
+  const finAnnee = new Date(y, 11, 31);
+  const debutPeriode = contratDebut > debutAnnee ? contratDebut : debutAnnee;
+  const finPeriode = contratFin && contratFin < finAnnee ? contratFin : finAnnee;
+
   const joursDeLannee = [];
-  { let d = new Date(y, 0, 1); while (d.getFullYear() === y) { joursDeLannee.push(d); d = addDays(d, 1); } }
+  { let d = new Date(debutPeriode); while (d <= finPeriode) { joursDeLannee.push(d); d = addDays(d, 1); } }
 
   const joursStats = vue === "annee" ? joursDeLannee : joursDuMois;
 

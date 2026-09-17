@@ -23,7 +23,7 @@ export default function VueAnnuelle({ annee, contratActif, onSelectMonth }) {
           <div
             key={m}
             className={cls}
-            onClick={() => onSelectMonth(m)}
+            onClick={isOutside ? undefined : () => onSelectMonth(m)}
           >
             {nom} {annee}
           </div>
