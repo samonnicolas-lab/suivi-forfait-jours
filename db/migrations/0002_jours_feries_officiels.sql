@@ -9,7 +9,3 @@ create table if not exists jours_feries_officiels (
   libelle text not null,
   primary key (zone, date)
 );
-
-alter table jours_feries_officiels enable row level security;
-
-grant select, insert on jours_feries_officiels to service_role;

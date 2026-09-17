@@ -1,18 +1,14 @@
 import { json, withErrorHandling, HttpError } from "./lib/http.js";
 import { requireSession } from "./lib/session/requireSession.js";
-import { getSupabase } from "./lib/supabase/client.js";
+import { getSql } from "./lib/db/client.js";
 
 const TYPES_VALIDES = new Set(["travaille", "teletravail", "conge", "maladie", "recup", "repos"]);
 
-async function verifierProprietaire(supabase, contratId, googleId) {
-  const { data, error: dbError } = await supabase
-    .from("contrats")
-    .select("id")
-    .eq("id", contratId)
-    .eq("utilisateur_google_id", googleId)
-    .maybeSingle();
-  if (dbError) throw new HttpError(500, "Impossible de vérifier le contrat.");
-  if (!data) throw new HttpError(404, "Contrat introuvable.");
+async function verifierProprietaire(sql, contratId, googleId) {
+  const rows = await sql`
+    select id from contrats where id = ${contratId} and utilisateur_google_id = ${googleId}
+  `;
+  if (rows.length === 0) throw new HttpError(404, "Contrat introuvable.");
 }
 
 async function handleList(request, session) {
@@ -22,18 +18,15 @@ async function handleList(request, session) {
   const to = url.searchParams.get("to");
   if (!contratId || !from || !to) throw new HttpError(400, "contratId, from et to sont requis.");
 
-  const supabase = getSupabase();
-  await verifierProprietaire(supabase, contratId, session.googleId);
+  const sql = getSql();
+  await verifierProprietaire(sql, contratId, session.googleId);
 
-  const { data, error: dbError } = await supabase
-    .from("jours_declares")
-    .select("date, type_matin, type_apresmidi")
-    .eq("contrat_id", contratId)
-    .gte("date", from)
-    .lte("date", to);
-
-  if (dbError) throw new HttpError(500, "Impossible de lister les jours déclarés.");
-  return json(200, { jours: data });
+  const rows = await sql`
+    select to_char(date, 'YYYY-MM-DD') as date, type_matin, type_apresmidi
+    from jours_declares
+    where contrat_id = ${contratId} and date >= ${from} and date <= ${to}
+  `;
+  return json(200, { jours: rows });
 }
 
 async function handleUpsert(request, session) {
@@ -47,23 +40,22 @@ async function handleUpsert(request, session) {
     }
   }
 
-  const supabase = getSupabase();
-  await verifierProprietaire(supabase, body.contratId, session.googleId);
+  const sql = getSql();
+  await verifierProprietaire(sql, body.contratId, session.googleId);
 
-  const lignes = body.jours.map((j) => ({
-    utilisateur_google_id: session.googleId,
-    contrat_id: body.contratId,
-    date: j.date,
-    type_matin: j.matin,
-    type_apresmidi: j.apresmidi,
-    updated_at: new Date().toISOString(),
-  }));
+  await Promise.all(
+    body.jours.map((j) =>
+      sql`
+        insert into jours_declares (utilisateur_google_id, contrat_id, date, type_matin, type_apresmidi, updated_at)
+        values (${session.googleId}, ${body.contratId}, ${j.date}, ${j.matin}, ${j.apresmidi}, now())
+        on conflict (contrat_id, date) do update set
+          type_matin = excluded.type_matin,
+          type_apresmidi = excluded.type_apresmidi,
+          updated_at = excluded.updated_at
+      `
+    )
+  );
 
-  const { error: dbError } = await supabase
-    .from("jours_declares")
-    .upsert(lignes, { onConflict: "contrat_id,date" });
-
-  if (dbError) throw new HttpError(500, "Impossible d'enregistrer les jours déclarés.");
   return json(200, { ok: true });
 }
 

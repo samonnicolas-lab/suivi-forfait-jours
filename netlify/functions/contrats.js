@@ -1,17 +1,18 @@
 import { json, error, withErrorHandling, HttpError } from "./lib/http.js";
 import { requireSession } from "./lib/session/requireSession.js";
-import { getSupabase } from "./lib/supabase/client.js";
+import { getSql } from "./lib/db/client.js";
 
 async function handleList(session) {
-  const supabase = getSupabase();
-  const { data, error: dbError } = await supabase
-    .from("contrats")
-    .select("*")
-    .eq("utilisateur_google_id", session.googleId)
-    .order("date_debut", { ascending: false });
-
-  if (dbError) throw new HttpError(500, "Impossible de lister les contrats.");
-  return json(200, { contrats: data });
+  const sql = getSql();
+  const rows = await sql`
+    select id, employeur, to_char(date_debut, 'YYYY-MM-DD') as date_debut,
+      to_char(date_fin, 'YYYY-MM-DD') as date_fin, jours_forfait, teletravail_active,
+      quota_conges_ouvres, zone_jours_feries
+    from contrats
+    where utilisateur_google_id = ${session.googleId}
+    order by date_debut desc
+  `;
+  return json(200, { contrats: rows });
 }
 
 async function handleCreate(request, session) {
@@ -20,24 +21,22 @@ async function handleCreate(request, session) {
     throw new HttpError(400, "employeur, dateDebut et joursForfait sont requis.");
   }
 
-  const supabase = getSupabase();
-  const { data, error: dbError } = await supabase
-    .from("contrats")
-    .insert({
-      utilisateur_google_id: session.googleId,
-      employeur: body.employeur,
-      date_debut: body.dateDebut,
-      date_fin: body.dateFin || null,
-      jours_forfait: body.joursForfait,
-      teletravail_active: !!body.teletravailActive,
-      quota_conges_ouvres: body.quotaCongesOuvres ?? 25,
-      zone_jours_feries: body.zoneJoursFeries || "metropole",
-    })
-    .select()
-    .single();
-
-  if (dbError) throw new HttpError(500, "Impossible de créer le contrat.");
-  return json(201, { contrat: data });
+  const sql = getSql();
+  const rows = await sql`
+    insert into contrats (
+      utilisateur_google_id, employeur, date_debut, date_fin, jours_forfait,
+      teletravail_active, quota_conges_ouvres, zone_jours_feries
+    )
+    values (
+      ${session.googleId}, ${body.employeur}, ${body.dateDebut}, ${body.dateFin || null},
+      ${body.joursForfait}, ${!!body.teletravailActive}, ${body.quotaCongesOuvres ?? 25},
+      ${body.zoneJoursFeries || "metropole"}
+    )
+    returning id, employeur, to_char(date_debut, 'YYYY-MM-DD') as date_debut,
+      to_char(date_fin, 'YYYY-MM-DD') as date_fin, jours_forfait, teletravail_active,
+      quota_conges_ouvres, zone_jours_feries
+  `;
+  return json(201, { contrat: rows[0] });
 }
 
 export default async (request) => {

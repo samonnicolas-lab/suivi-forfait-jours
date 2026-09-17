@@ -2,13 +2,17 @@
 -- et jours déclarés (travaillé/télétravail/congé/maladie/récupération/repos).
 -- Cf. cahier des charges §9 (modèle de données V1).
 --
--- Pas de Supabase Auth : l'identité vient du flux Google OAuth maison
--- (netlify/functions/auth-google.js), qui pose un cookie de session contenant
--- l'identifiant Google (`googleId`) de l'utilisateur. Les fonctions serverless
--- utilisent la clé service_role (qui bypasse RLS) et filtrent elles-mêmes par
--- utilisateur_google_id à chaque requête.
+-- Postgres standard (Neon / Netlify DB) : pas de Supabase Auth ni de RLS ici,
+-- l'identité vient du flux Google OAuth maison (netlify/functions/auth-google.js),
+-- qui pose un cookie de session contenant l'identifiant Google (`googleId`) de
+-- l'utilisateur. Les fonctions serverless se connectent avec les identifiants
+-- complets de la base et filtrent elles-mêmes par utilisateur_google_id à
+-- chaque requête.
 --
--- À exécuter une fois dans l'éditeur SQL du dashboard Supabase.
+-- À exécuter une fois via l'éditeur SQL de la console Neon (ou `psql`, ou
+-- `netlify db` une fois le site lié).
+
+create extension if not exists pgcrypto;
 
 create table if not exists contrats (
   id uuid primary key default gen_random_uuid(),
@@ -45,16 +49,3 @@ create table if not exists jours_declares (
 );
 
 create index if not exists jours_declares_utilisateur_idx on jours_declares (utilisateur_google_id, date);
-
--- RLS activée sans policy : seule la clé service_role (bypassrls) peut lire/
--- écrire. La clé anon (si jamais utilisée côté client un jour) n'a aucun accès.
-alter table contrats enable row level security;
-alter table jours_feries_entreprise enable row level security;
-alter table jours_declares enable row level security;
-
--- Sur ce projet, une table créée via l'éditeur SQL n'est pas automatiquement
--- accessible au rôle service_role : accès explicite requis (déjà rencontré
--- sur le projet notes de frais, cf. sa migration 0004).
-grant select, insert, update, delete on contrats to service_role;
-grant select, insert, update, delete on jours_feries_entreprise to service_role;
-grant select, insert, update, delete on jours_declares to service_role;

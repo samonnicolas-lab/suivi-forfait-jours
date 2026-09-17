@@ -18,17 +18,18 @@ construire (voir « Prochaines étapes » ci-dessous).
 
 - Frontend : React + Vite, PWA (`vite-plugin-pwa`)
 - Backend : fonctions serverless Netlify (format v2, ESM)
-- Données : Supabase (Postgres), tables `contrats`, `jours_declares`,
-  `jours_feries_entreprise` (clé `service_role`, RLS activée sans policy — voir
-  `supabase/migrations/0001_init.sql`)
+- Données : Netlify DB — Postgres serverless géré par [Neon](https://neon.tech),
+  provisionné directement depuis Netlify (offre gratuite, pas de carte
+  bancaire). Tables `contrats`, `jours_declares`, `jours_feries_entreprise`,
+  `jours_feries_officiels` — voir `db/migrations/`.
 - Authentification : Google OAuth 2.0 (identité uniquement, scope
   `openid email`) — pas de mode de contournement en dev, même flux réel partout
   sur un client OAuth Google Cloud en niveau gratuit
-- Jours fériés officiels : [`calendrier.api.gouv.fr/jours-feries`](https://calendrier.api.gouv.fr/jours-feries/)
-  (à intégrer côté fonction serverless avec mise en cache, prochaine étape)
+- Jours fériés officiels : [`calendrier.api.gouv.fr/jours-feries`](https://calendrier.api.gouv.fr/jours-feries/),
+  résultat mis en cache dans `jours_feries_officiels`
 
 Aucune clé API ni secret n'est exposé côté navigateur : tous les appels à
-Google et à Supabase passent par les fonctions dans `netlify/functions/`.
+Google et à la base de données passent par les fonctions dans `netlify/functions/`.
 
 ## Configuration requise
 
@@ -38,17 +39,22 @@ Google et à Supabase passent par les fonctions dans `netlify/functions/`.
    (et `http://localhost:8888/api/auth-google?action=callback` pour le dev
    local). Aucune API Google payante n'est appelée : l'authentification reste
    sur le niveau gratuit.
-2. **Supabase** : créer un projet, exécuter `supabase/migrations/0001_init.sql`
-   dans l'éditeur SQL, récupérer l'URL du projet et la clé `service_role`
-   (Project settings → API).
-3. Copier `.env.example` en `.env` et renseigner les variables. En production,
-   renseigner les mêmes variables dans Netlify (Site settings → Environment
-   variables) :
+2. **Netlify DB** : depuis le dashboard du site (onglet « Database » /
+   extension Neon) ou via `netlify db init` en CLI (après `netlify link`).
+   Provisionne une base Neon et injecte automatiquement `NETLIFY_DATABASE_URL`
+   dans les variables d'environnement du site (et en local via `netlify dev`,
+   une fois le site lié). Puis exécuter, dans l'éditeur SQL Neon (accessible
+   depuis le lien fourni par Netlify) : `db/migrations/0001_init.sql` puis
+   `db/migrations/0002_jours_feries_officiels.sql`.
+3. Copier `.env.example` en `.env` pour le dev local si besoin (`netlify db
+   init` peut suffire à tout injecter automatiquement). Variables à
+   connaître :
    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
    - `APP_BASE_URL` (URL publique du site)
    - `SESSION_SECRET` (générer avec
      `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
-   - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+   - `NETLIFY_DATABASE_URL` (injectée automatiquement par Netlify DB — à ne
+     renseigner à la main que pour un test hors Netlify)
 
 ## Développement local
 
@@ -82,6 +88,6 @@ externe : `node scripts/generate-icons.mjs`.
   déjà en place) + prise en compte dans le solde de repos.
 - Écran de réglages complet du contrat (édition, historique/sélecteur
   multi-contrats — le contrat actif est pour l'instant choisi automatiquement).
-- Vérifier en conditions réelles (Google Cloud + Supabase configurés) : le
+- Vérifier en conditions réelles (Google Cloud + Netlify DB configurés) : le
   calendrier n'a été testé qu'avec des appels API mockés faute d'identifiants
   dans cet environnement.

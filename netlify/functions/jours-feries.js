@@ -1,6 +1,6 @@
 import { json, withErrorHandling, HttpError } from "./lib/http.js";
 import { requireSession } from "./lib/session/requireSession.js";
-import { getSupabase } from "./lib/supabase/client.js";
+import { getSql } from "./lib/db/client.js";
 
 const ZONES = new Set([
   "metropole",
@@ -17,15 +17,12 @@ const ZONES = new Set([
   "wallis-et-futuna",
 ]);
 
-async function chargerDepuisCache(supabase, zone, annee) {
-  const { data, error: dbError } = await supabase
-    .from("jours_feries_officiels")
-    .select("date, libelle")
-    .eq("zone", zone)
-    .gte("date", `${annee}-01-01`)
-    .lte("date", `${annee}-12-31`);
-  if (dbError) throw new HttpError(500, "Impossible de lire le cache des jours fériés.");
-  return data;
+async function chargerDepuisCache(sql, zone, annee) {
+  return sql`
+    select to_char(date, 'YYYY-MM-DD') as date, libelle
+    from jours_feries_officiels
+    where zone = ${zone} and date >= ${`${annee}-01-01`} and date <= ${`${annee}-12-31`}
+  `;
 }
 
 async function chargerDepuisApi(zone, annee) {
@@ -49,19 +46,21 @@ export default async (request) => {
       throw new HttpError(400, "Année invalide.");
     }
 
-    const supabase = getSupabase();
-    let rows = await chargerDepuisCache(supabase, zone, annee);
+    const sql = getSql();
+    let rows = await chargerDepuisCache(sql, zone, annee);
 
     if (rows.length === 0) {
       const depuisApi = await chargerDepuisApi(zone, annee);
       if (depuisApi.length > 0) {
-        const { error: dbError } = await supabase
-          .from("jours_feries_officiels")
-          .upsert(
-            depuisApi.map((j) => ({ zone, date: j.date, libelle: j.libelle })),
-            { onConflict: "zone,date" }
-          );
-        if (dbError) console.error("Échec de la mise en cache des jours fériés :", dbError);
+        await Promise.all(
+          depuisApi.map((j) =>
+            sql`
+              insert into jours_feries_officiels (zone, date, libelle)
+              values (${zone}, ${j.date}, ${j.libelle})
+              on conflict (zone, date) do nothing
+            `
+          )
+        );
       }
       rows = depuisApi;
     }
