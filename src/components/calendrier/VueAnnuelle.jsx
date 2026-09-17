@@ -1,9 +1,11 @@
-import { MONTH_NAMES } from "../../utils/calendrier";
+import { MONTH_NAMES, parseKey } from "../../utils/calendrier";
 
 export default function VueAnnuelle({ annee, contratActif, onSelectMonth }) {
   const today = new Date();
-  const contratDebut = contratActif ? new Date(contratActif.date_debut) : null;
-  const contratFin = contratActif && contratActif.date_fin ? new Date(contratActif.date_fin) : null;
+  // parseKey (minuit local) plutôt que new Date("YYYY-MM-DD") (minuit UTC),
+  // pour éviter tout décalage de fuseau horaire dans les comparaisons.
+  const contratDebut = contratActif ? parseKey(contratActif.date_debut) : null;
+  const contratFin = contratActif && contratActif.date_fin ? parseKey(contratActif.date_fin) : null;
 
   return (
     <div className="year-grid">

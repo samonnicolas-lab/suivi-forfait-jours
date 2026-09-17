@@ -65,8 +65,12 @@ export function getISOWeek(date) {
 export function joursPeriodeContrat(annee, contrat) {
   const debutAnnee = new Date(annee, 0, 1);
   const finAnnee = new Date(annee, 11, 31);
-  const contratDebut = new Date(contrat.date_debut);
-  const contratFin = contrat.date_fin ? new Date(contrat.date_fin) : null;
+  // `parseKey` construit la date à minuit en heure locale, contrairement à
+  // `new Date("YYYY-MM-DD")` qui la lit en UTC : sur ce projet, comparer les
+  // deux formes faisait sauter le dernier jour de la période (le 31/12 à
+  // 2h locales n'est pas <= au 31/12 à 0h locales).
+  const contratDebut = parseKey(contrat.date_debut);
+  const contratFin = contrat.date_fin ? parseKey(contrat.date_fin) : null;
   const debut = contratDebut > debutAnnee ? contratDebut : debutAnnee;
   const fin = contratFin && contratFin < finAnnee ? contratFin : finAnnee;
 
