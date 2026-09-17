@@ -86,8 +86,22 @@ export function joursPeriodeContrat(annee, contrat) {
 // quota théorique brut. N'inclut pour l'instant que les jours fériés
 // officiels (pas encore les jours fériés propres à l'entreprise, dont la
 // saisie reste à construire).
+//
+// Le forfait et le quota de congés sont des droits annuels : sur une période
+// plus courte (contrat démarré/arrêté en cours d'année), ils sont proratisés
+// à la fraction de l'année couverte — sinon un contrat de 4 mois se voit
+// quand même soustraire un forfait de 218 jours pensé pour 12 mois, ce qui
+// donne un solde absurdement négatif.
 export function computeSoldeRepos(joursPeriode, feries, contrat, declMap) {
   if (joursPeriode.length === 0) return 0;
+
+  const annee = joursPeriode[0].getFullYear();
+  const bissextile = (annee % 4 === 0 && annee % 100 !== 0) || annee % 400 === 0;
+  const joursAnneeComplete = bissextile ? 366 : 365;
+  const prorata = joursPeriode.length / joursAnneeComplete;
+
+  const forfaitProratise = Math.round(contrat.jours_forfait * prorata * 2) / 2;
+  const congesProratises = Math.round(contrat.quota_conges_ouvres * prorata * 2) / 2;
 
   let weekends = 0;
   let feriesOuvres = 0;
@@ -102,7 +116,7 @@ export function computeSoldeRepos(joursPeriode, feries, contrat, declMap) {
     if (decl.apresmidi === "repos") nonOuvresConsommes += 0.5;
   }
 
-  const quota = joursPeriode.length - weekends - feriesOuvres - contrat.quota_conges_ouvres - contrat.jours_forfait;
+  const quota = joursPeriode.length - weekends - feriesOuvres - congesProratises - forfaitProratise;
   return quota - nonOuvresConsommes;
 }
 

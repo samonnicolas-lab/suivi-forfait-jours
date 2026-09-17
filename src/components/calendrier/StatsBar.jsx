@@ -37,7 +37,7 @@ export default function StatsBar({ days, parJour, feries, soldeRepos, anneeSolde
       </div>
       <div className="cal-stat solde">
         <div className="label">Solde repos {anneeSolde}</div>
-        <div className="value">{soldeRepos} <small>j./an</small></div>
+        <div className="value">{fmtNum(soldeRepos)} <small>j./an</small></div>
       </div>
     </div>
   );
