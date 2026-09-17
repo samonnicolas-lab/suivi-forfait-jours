@@ -60,6 +60,12 @@ export default function Calendrier() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contratActif?.id, dateKey(gridStart), dateKey(gridEnd)]);
 
+  useEffect(() => {
+    if (!contratActif || vue !== "annee") return;
+    garantirPlage(dateKey(new Date(y, 0, 1)), dateKey(new Date(y, 11, 31)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contratActif?.id, vue, y]);
+
   if (loading) {
     return (
       <div className="screen center-screen">
@@ -143,22 +149,25 @@ export default function Calendrier() {
   const joursDuMois = [];
   { let d = new Date(y, m, 1); while (d.getMonth() === m) { joursDuMois.push(d); d = addDays(d, 1); } }
 
+  const joursDeLannee = [];
+  { let d = new Date(y, 0, 1); while (d.getFullYear() === y) { joursDeLannee.push(d); d = addDays(d, 1); } }
+
+  const joursStats = vue === "annee" ? joursDeLannee : joursDuMois;
+
   return (
     <div className="screen">
       <div className="screen-header">
         <h1>Calendrier</h1>
       </div>
 
-      {vue === "mois" && (
-        <>
-          <StatsBar days={joursDuMois} parJour={parJour} feries={feries} soldeRepos={soldeRepos} anneeSolde={y} />
+      <StatsBar days={joursStats} parJour={parJour} feries={feries} soldeRepos={soldeRepos} anneeSolde={y} />
 
-          <MultiSelectToggle
-            active={multiSelectMode}
-            onToggle={() => { setMultiSelectMode((v) => !v); setSelectedSet(new Set()); }}
-            hint="Cochez plusieurs jours (ou le n° de semaine pour tout cocher en semaine) pour leur appliquer le même statut"
-          />
-        </>
+      {vue === "mois" && (
+        <MultiSelectToggle
+          active={multiSelectMode}
+          onToggle={() => { setMultiSelectMode((v) => !v); setSelectedSet(new Set()); }}
+          hint="Cochez plusieurs jours (ou le n° de semaine pour tout cocher en semaine) pour leur appliquer le même statut"
+        />
       )}
 
       <div className="gran-toggle">
