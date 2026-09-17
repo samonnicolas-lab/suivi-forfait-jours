@@ -83,47 +83,6 @@ export function joursPeriodeContrat(annee, contrat) {
   return jours;
 }
 
-// Formule §4.1 du cahier des charges, sur la période du contrat pour l'année
-// donnée (pas l'année civile complète si le contrat démarre/s'arrête en
-// cours d'année), puis nettée des jours non-ouvrés déjà pris sur des jours
-// qui auraient sinon été ouvrés : c'est un vrai solde restant, pas juste le
-// quota théorique brut. N'inclut pour l'instant que les jours fériés
-// officiels (pas encore les jours fériés propres à l'entreprise, dont la
-// saisie reste à construire).
-//
-// Le forfait et le quota de congés sont des droits annuels : sur une période
-// plus courte (contrat démarré/arrêté en cours d'année), ils sont proratisés
-// à la fraction de l'année couverte — sinon un contrat de 4 mois se voit
-// quand même soustraire un forfait de 218 jours pensé pour 12 mois, ce qui
-// donne un solde absurdement négatif.
-export function computeSoldeRepos(joursPeriode, feries, contrat, declMap) {
-  if (joursPeriode.length === 0) return 0;
-
-  const annee = joursPeriode[0].getFullYear();
-  const bissextile = (annee % 4 === 0 && annee % 100 !== 0) || annee % 400 === 0;
-  const joursAnneeComplete = bissextile ? 366 : 365;
-  const prorata = joursPeriode.length / joursAnneeComplete;
-
-  const forfaitProratise = Math.round(contrat.jours_forfait * prorata * 2) / 2;
-  const congesProratises = Math.round(contrat.quota_conges_ouvres * prorata * 2) / 2;
-
-  let weekends = 0;
-  let feriesOuvres = 0;
-  let nonOuvresConsommes = 0;
-
-  for (const d of joursPeriode) {
-    if (isWeekend(d)) { weekends++; continue; }
-    const k = dateKey(d);
-    if (feries[k]) { feriesOuvres++; continue; }
-    const decl = resolveDecl(d, declMap, feries);
-    if (decl.matin === "repos") nonOuvresConsommes += 0.5;
-    if (decl.apresmidi === "repos") nonOuvresConsommes += 0.5;
-  }
-
-  const quota = joursPeriode.length - weekends - feriesOuvres - congesProratises - forfaitProratise;
-  return quota - nonOuvresConsommes;
-}
-
 // Valeur par défaut d'un jour non encore déclaré explicitement :
 // week-end -> repos, jour ouvré -> travaillé. Un jour férié n'a pas de
 // déclaration (non déclarable, cf. §4.3).

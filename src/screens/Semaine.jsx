@@ -21,8 +21,6 @@ import {
   mondayOf,
   getISOWeek,
   resolveDecl,
-  computeSoldeRepos,
-  joursPeriodeContrat,
 } from "../utils/calendrier";
 
 export default function Semaine() {
@@ -45,21 +43,11 @@ export default function Semaine() {
   const feries = useJoursFeries(zone, annees);
   const { parJour, garantirPlage, enregistrer } = useJoursDeclares(contratActif?.id);
 
-  const joursAnnee = contratActif ? joursPeriodeContrat(refWeekAnchor.getFullYear(), contratActif) : [];
-
   useEffect(() => {
     if (!contratActif) return;
     garantirPlage(dateKey(refWeekAnchor), dateKey(weekEnd));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contratActif?.id, dateKey(refWeekAnchor)]);
-
-  // Le solde de repos affiché ici porte sur toute l'année (période couverte
-  // par le contrat), pas seulement sur la semaine visible.
-  useEffect(() => {
-    if (!contratActif || joursAnnee.length === 0) return;
-    garantirPlage(dateKey(joursAnnee[0]), dateKey(joursAnnee[joursAnnee.length - 1]));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contratActif?.id, refWeekAnchor.getFullYear()]);
 
   if (loading) {
     return (
@@ -84,8 +72,6 @@ export default function Semaine() {
       </div>
     );
   }
-
-  const soldeRepos = computeSoldeRepos(joursAnnee, feries, contratActif, parJour);
 
   function toggleDaySelection(d) {
     const k = dateKey(d);
@@ -127,7 +113,7 @@ export default function Semaine() {
         <h1>Semaine</h1>
       </div>
 
-      <StatsBar days={jours} parJour={parJour} feries={feries} soldeRepos={soldeRepos} anneeSolde={refWeekAnchor.getFullYear()} />
+      <StatsBar days={jours} parJour={parJour} feries={feries} />
 
       <MultiSelectToggle
         active={multiSelectMode}

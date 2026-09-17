@@ -4,10 +4,10 @@ function fmtNum(n) {
   return (Math.round(n * 2) / 2).toString();
 }
 
-// Compte les jours par type sur la période visible (mois ou semaine), plus
-// le solde de repos annuel (calculé par le parent, qui a accès aux jours
-// fériés de l'année entière).
-export default function StatsBar({ days, parJour, feries, soldeRepos, anneeSolde }) {
+// Compte les jours par type sur la période visible (mois, semaine ou année).
+// Le calcul d'un solde de congés/repos est volontairement laissé aux RH :
+// cet outil sert à déclarer, pas à faire foi sur les compteurs.
+export default function StatsBar({ days, parJour, feries }) {
   const counts = {};
   TYPE_KEYS.forEach((t) => { counts[t] = 0; });
   let feriesCount = 0;
@@ -34,10 +34,6 @@ export default function StatsBar({ days, parJour, feries, soldeRepos, anneeSolde
       <div className="cal-stat">
         <div className="label">Fériés</div>
         <div className="value">{feriesCount} <small>j.</small></div>
-      </div>
-      <div className="cal-stat solde">
-        <div className="label">Solde repos {anneeSolde}</div>
-        <div className="value">{fmtNum(soldeRepos)} <small>j./an</small></div>
       </div>
     </div>
   );

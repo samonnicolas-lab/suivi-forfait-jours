@@ -21,7 +21,6 @@ import {
   addDays,
   getISOWeek,
   resolveDecl,
-  computeSoldeRepos,
   joursPeriodeContrat,
 } from "../utils/calendrier";
 
@@ -63,15 +62,11 @@ export default function Calendrier() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contratActif?.id, dateKey(gridStart), dateKey(gridEnd)]);
 
-  // Toujours chargée (pas seulement en vue Année) : le solde de repos affiché
-  // dans le bandeau de stats, visible dans les deux vues, se calcule sur
-  // toute la période du contrat pour l'année en cours, pas seulement sur le
-  // mois affiché.
   useEffect(() => {
-    if (!contratActif || joursAnnee.length === 0) return;
+    if (!contratActif || vue !== "annee" || joursAnnee.length === 0) return;
     garantirPlage(dateKey(joursAnnee[0]), dateKey(joursAnnee[joursAnnee.length - 1]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contratActif?.id, y]);
+  }, [contratActif?.id, vue, y]);
 
   if (loading) {
     return (
@@ -96,8 +91,6 @@ export default function Calendrier() {
       </div>
     );
   }
-
-  const soldeRepos = computeSoldeRepos(joursAnnee, feries, contratActif, parJour);
 
   function toggleDaySelection(d) {
     const k = dateKey(d);
@@ -164,7 +157,7 @@ export default function Calendrier() {
         <h1>Calendrier</h1>
       </div>
 
-      <StatsBar days={joursStats} parJour={parJour} feries={feries} soldeRepos={soldeRepos} anneeSolde={y} />
+      <StatsBar days={joursStats} parJour={parJour} feries={feries} />
 
       {vue === "mois" && (
         <MultiSelectToggle

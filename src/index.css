@@ -376,13 +376,6 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-.cal-stat.solde {
-  border-color: var(--color-primary);
-}
-
-.cal-stat.solde .value {
-  color: var(--color-primary-dark);
-}
 
 .ms-row {
   display: flex;
