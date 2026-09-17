@@ -43,6 +43,12 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
+  modifierContrat: (id, payload) =>
+    request("/contrats", {
+      method: "POST",
+      body: JSON.stringify({ id, ...payload }),
+    }),
+
   joursFeries: (zone, annee) =>
     request(`/jours-feries?zone=${encodeURIComponent(zone)}&annee=${annee}`),
 

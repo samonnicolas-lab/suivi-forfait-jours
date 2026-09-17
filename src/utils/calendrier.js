@@ -7,7 +7,7 @@ export const TYPES = {
   conge: { label: "Congé", color: "#ad7c1d", soft: "#f6edda", ink: "#805c14" },
   maladie: { label: "Maladie", color: "#b24a63", soft: "#f5e2e7", ink: "#87344a" },
   recup: { label: "Récupération", color: "#6b5b95", soft: "#eae6f4", ink: "#4d4070" },
-  repos: { label: "Repos", color: "#7c8990", soft: "#e9edee", ink: "#5b6569" },
+  repos: { label: "Jours non-ouvrés", color: "#7c8990", soft: "#e9edee", ink: "#5b6569" },
 };
 export const TYPE_KEYS = Object.keys(TYPES);
 
@@ -60,27 +60,50 @@ export function getISOWeek(date) {
   return 1 + Math.round(diff / 7);
 }
 
-// Formule §4.1 du cahier des charges. N'inclut pour l'instant que les jours
-// fériés officiels (pas encore les jours fériés propres à l'entreprise,
-// dont la saisie reste à construire).
-export function computeSoldeRepos(year, feriesAnnee, contrat) {
-  const bissextile = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-  const joursCalendaires = bissextile ? 366 : 365;
+// Jours de l'année `annee` réellement couverts par le contrat (clampés à sa
+// date de début / date de fin s'il démarre ou s'arrête en cours d'année).
+export function joursPeriodeContrat(annee, contrat) {
+  const debutAnnee = new Date(annee, 0, 1);
+  const finAnnee = new Date(annee, 11, 31);
+  const contratDebut = new Date(contrat.date_debut);
+  const contratFin = contrat.date_fin ? new Date(contrat.date_fin) : null;
+  const debut = contratDebut > debutAnnee ? contratDebut : debutAnnee;
+  const fin = contratFin && contratFin < finAnnee ? contratFin : finAnnee;
 
-  let weekends = 0;
-  let d = new Date(year, 0, 1);
-  while (d.getFullYear() === year) {
-    if (isWeekend(d)) weekends++;
+  const jours = [];
+  let d = new Date(debut);
+  while (d <= fin) {
+    jours.push(d);
     d = addDays(d, 1);
   }
+  return jours;
+}
 
+// Formule §4.1 du cahier des charges, sur la période du contrat pour l'année
+// donnée (pas l'année civile complète si le contrat démarre/s'arrête en
+// cours d'année), puis nettée des jours non-ouvrés déjà pris sur des jours
+// qui auraient sinon été ouvrés : c'est un vrai solde restant, pas juste le
+// quota théorique brut. N'inclut pour l'instant que les jours fériés
+// officiels (pas encore les jours fériés propres à l'entreprise, dont la
+// saisie reste à construire).
+export function computeSoldeRepos(joursPeriode, feries, contrat, declMap) {
+  if (joursPeriode.length === 0) return 0;
+
+  let weekends = 0;
   let feriesOuvres = 0;
-  for (const k of Object.keys(feriesAnnee)) {
-    const dd = parseKey(k);
-    if (dd.getFullYear() === year && !isWeekend(dd)) feriesOuvres++;
+  let nonOuvresConsommes = 0;
+
+  for (const d of joursPeriode) {
+    if (isWeekend(d)) { weekends++; continue; }
+    const k = dateKey(d);
+    if (feries[k]) { feriesOuvres++; continue; }
+    const decl = resolveDecl(d, declMap, feries);
+    if (decl.matin === "repos") nonOuvresConsommes += 0.5;
+    if (decl.apresmidi === "repos") nonOuvresConsommes += 0.5;
   }
 
-  return joursCalendaires - weekends - feriesOuvres - contrat.quota_conges_ouvres - contrat.jours_forfait;
+  const quota = joursPeriode.length - weekends - feriesOuvres - contrat.quota_conges_ouvres - contrat.jours_forfait;
+  return quota - nonOuvresConsommes;
 }
 
 // Valeur par défaut d'un jour non encore déclaré explicitement :

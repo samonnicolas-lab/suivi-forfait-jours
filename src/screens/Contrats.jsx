@@ -20,16 +20,30 @@ const ZONES = [
 const FORM_INITIAL = {
   employeur: "",
   dateDebut: "",
+  dateFin: "",
   joursForfait: 218,
   teletravailActive: true,
   quotaCongesOuvres: 25,
   zoneJoursFeries: "metropole",
 };
 
+function contratVersForm(c) {
+  return {
+    employeur: c.employeur,
+    dateDebut: c.date_debut,
+    dateFin: c.date_fin || "",
+    joursForfait: c.jours_forfait,
+    teletravailActive: c.teletravail_active,
+    quotaCongesOuvres: c.quota_conges_ouvres,
+    zoneJoursFeries: c.zone_jours_feries,
+  };
+}
+
 export default function Contrats() {
   const [contrats, setContrats] = useState(null);
   const [erreur, setErreur] = useState(null);
   const [ouvrirFormulaire, setOuvrirFormulaire] = useState(false);
+  const [contratEnEdition, setContratEnEdition] = useState(null);
   const [form, setForm] = useState(FORM_INITIAL);
   const [enregistrement, setEnregistrement] = useState(false);
 
@@ -46,14 +60,34 @@ export default function Contrats() {
     charger();
   }, [charger]);
 
+  function ouvrirNouveauContrat() {
+    setContratEnEdition(null);
+    setForm(FORM_INITIAL);
+    setOuvrirFormulaire(true);
+  }
+
+  function ouvrirEditionContrat(c) {
+    setContratEnEdition(c);
+    setForm(contratVersForm(c));
+    setOuvrirFormulaire(true);
+  }
+
+  function fermerFormulaire() {
+    setOuvrirFormulaire(false);
+    setContratEnEdition(null);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setEnregistrement(true);
     setErreur(null);
     try {
-      await api.creerContrat(form);
-      setForm(FORM_INITIAL);
-      setOuvrirFormulaire(false);
+      if (contratEnEdition) {
+        await api.modifierContrat(contratEnEdition.id, form);
+      } else {
+        await api.creerContrat(form);
+      }
+      fermerFormulaire();
       await charger();
     } catch (err) {
       setErreur(err.message);
@@ -66,7 +100,11 @@ export default function Contrats() {
     <div className="screen">
       <div className="screen-header">
         <h1>Contrats</h1>
-        <button type="button" className="btn btn-primary" onClick={() => setOuvrirFormulaire((v) => !v)}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => (ouvrirFormulaire ? fermerFormulaire() : ouvrirNouveauContrat())}
+        >
           {ouvrirFormulaire ? "Annuler" : "Nouveau contrat"}
         </button>
       </div>
@@ -75,6 +113,9 @@ export default function Contrats() {
 
       {ouvrirFormulaire && (
         <form className="card screen" onSubmit={handleSubmit}>
+          <h2 style={{ margin: 0, fontSize: 16 }}>
+            {contratEnEdition ? `Modifier « ${contratEnEdition.employeur} »` : "Nouveau contrat"}
+          </h2>
           <div className="field">
             <label htmlFor="employeur">Employeur</label>
             <input
@@ -92,6 +133,15 @@ export default function Contrats() {
               required
               value={form.dateDebut}
               onChange={(e) => setForm({ ...form, dateDebut: e.target.value })}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="dateFin">Date de fin (si contrat terminé)</label>
+            <input
+              id="dateFin"
+              type="date"
+              value={form.dateFin}
+              onChange={(e) => setForm({ ...form, dateFin: e.target.value })}
             />
           </div>
           <div className="field">
@@ -139,7 +189,7 @@ export default function Contrats() {
             Télétravail déclarable
           </label>
           <button type="submit" className="btn btn-primary btn-block" disabled={enregistrement}>
-            {enregistrement ? "Enregistrement..." : "Créer le contrat"}
+            {enregistrement ? "Enregistrement..." : contratEnEdition ? "Enregistrer les modifications" : "Créer le contrat"}
           </button>
         </form>
       )}
@@ -153,7 +203,12 @@ export default function Contrats() {
       {contrats !== null && contrats.length > 0 && (
         <div className="contrat-list">
           {contrats.map((c) => (
-            <div key={c.id} className="card contrat-item">
+            <div
+              key={c.id}
+              className="card contrat-item"
+              onClick={() => ouvrirEditionContrat(c)}
+              style={{ cursor: "pointer" }}
+            >
               <span className="employeur">{c.employeur}</span>
               <span className="text-muted text-small">
                 Depuis le {new Date(c.date_debut).toLocaleDateString("fr-FR")} · {c.jours_forfait} j./an ·{" "}
