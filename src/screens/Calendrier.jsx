@@ -8,6 +8,7 @@ import SelectionBar from "../components/calendrier/SelectionBar";
 import MultiSelectToggle from "../components/calendrier/MultiSelectToggle";
 import StatsBar from "../components/calendrier/StatsBar";
 import Legend from "../components/calendrier/Legend";
+import VueAnnuelle from "../components/calendrier/VueAnnuelle";
 import Spinner from "../components/Spinner";
 import {
   TYPES,
@@ -32,6 +33,7 @@ export default function Calendrier() {
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedSet, setSelectedSet] = useState(new Set());
   const [drawerTargets, setDrawerTargets] = useState([]);
+  const [vue, setVue] = useState("mois");
 
   const today = new Date();
   const y = refMonth.getFullYear();
@@ -147,59 +149,88 @@ export default function Calendrier() {
         <h1>Calendrier</h1>
       </div>
 
-      <StatsBar days={joursDuMois} parJour={parJour} feries={feries} soldeRepos={soldeRepos} anneeSolde={y} />
+      {vue === "mois" && (
+        <>
+          <StatsBar days={joursDuMois} parJour={parJour} feries={feries} soldeRepos={soldeRepos} anneeSolde={y} />
 
-      <MultiSelectToggle
-        active={multiSelectMode}
-        onToggle={() => { setMultiSelectMode((v) => !v); setSelectedSet(new Set()); }}
-        hint="Cochez plusieurs jours (ou le n° de semaine pour tout cocher en semaine) pour leur appliquer le même statut"
-      />
+          <MultiSelectToggle
+            active={multiSelectMode}
+            onToggle={() => { setMultiSelectMode((v) => !v); setSelectedSet(new Set()); }}
+            hint="Cochez plusieurs jours (ou le n° de semaine pour tout cocher en semaine) pour leur appliquer le même statut"
+          />
+        </>
+      )}
+
+      <div className="gran-toggle">
+        <button type="button" className={vue === "mois" ? "active" : ""} onClick={() => setVue("mois")}>Mois</button>
+        <button type="button" className={vue === "annee" ? "active" : ""} onClick={() => setVue("annee")}>Année</button>
+      </div>
 
       <div className="cal-toolbar">
-        <div className="cal-period">{MONTH_NAMES[m]} {y}</div>
+        <div className="cal-period">{vue === "mois" ? `${MONTH_NAMES[m]} ${y}` : y}</div>
         <div className="cal-navbtns">
-          <button type="button" onClick={() => setRefMonth(new Date(y, m - 1, 1))}>←</button>
-          <button type="button" onClick={() => setRefMonth(new Date(today.getFullYear(), today.getMonth(), 1))}>Aujourd'hui</button>
-          <button type="button" onClick={() => setRefMonth(new Date(y, m + 1, 1))}>→</button>
+          {vue === "mois" ? (
+            <>
+              <button type="button" onClick={() => setRefMonth(new Date(y, m - 1, 1))}>←</button>
+              <button type="button" onClick={() => setRefMonth(new Date(today.getFullYear(), today.getMonth(), 1))}>Aujourd'hui</button>
+              <button type="button" onClick={() => setRefMonth(new Date(y, m + 1, 1))}>→</button>
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={() => setRefMonth(new Date(y - 1, m, 1))}>←</button>
+              <button type="button" onClick={() => setRefMonth(new Date(today.getFullYear(), m, 1))}>Aujourd'hui</button>
+              <button type="button" onClick={() => setRefMonth(new Date(y + 1, m, 1))}>→</button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="month-grid">
-        <div />
-        {DOW_LABELS.map((l) => <div key={l} className="dow">{l}</div>)}
+      {vue === "annee" ? (
+        <VueAnnuelle
+          annee={y}
+          contratActif={contratActif}
+          onSelectMonth={(monthIndex) => { setRefMonth(new Date(y, monthIndex, 1)); setVue("mois"); }}
+        />
+      ) : (
+        <>
+          <div className="month-grid">
+            <div />
+            {DOW_LABELS.map((l) => <div key={l} className="dow">{l}</div>)}
 
-        {rows.map((rowStart) => (
-          <FragmentRow
-            key={dateKey(rowStart)}
-            rowStart={rowStart}
-            month={m}
-            today={today}
-            feries={feries}
-            parJour={parJour}
-            selectedSet={selectedSet}
-            multiSelectMode={multiSelectMode}
-            onDayClick={handleDayClick}
-            onWeekNumClick={selectWeekRow}
+            {rows.map((rowStart) => (
+              <FragmentRow
+                key={dateKey(rowStart)}
+                rowStart={rowStart}
+                month={m}
+                today={today}
+                feries={feries}
+                parJour={parJour}
+                selectedSet={selectedSet}
+                multiSelectMode={multiSelectMode}
+                onDayClick={handleDayClick}
+                onWeekNumClick={selectWeekRow}
+              />
+            ))}
+          </div>
+
+          <Legend />
+
+          <SelectionBar
+            count={selectedSet.size}
+            onSelectAll={selectAllVisible}
+            onCancel={() => setSelectedSet(new Set())}
+            onApply={() => setDrawerTargets(Array.from(selectedSet).map(parseKey))}
           />
-        ))}
-      </div>
 
-      <Legend />
-
-      <SelectionBar
-        count={selectedSet.size}
-        onSelectAll={selectAllVisible}
-        onCancel={() => setSelectedSet(new Set())}
-        onApply={() => setDrawerTargets(Array.from(selectedSet).map(parseKey))}
-      />
-
-      <JourDrawer
-        targets={drawerTargets}
-        parJour={parJour}
-        feries={feries}
-        onApply={handleApply}
-        onClose={closeDrawer}
-      />
+          <JourDrawer
+            targets={drawerTargets}
+            parJour={parJour}
+            feries={feries}
+            onApply={handleApply}
+            onClose={closeDrawer}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -256,8 +287,8 @@ function DayHalves({ decl }) {
   return (
     <>
       <div className="halves">
-        <div className="half" style={{ background: matin.soft }} />
-        <div className="half" style={{ background: apresmidi.soft }} />
+        <div className="half" style={{ background: matin.color }} />
+        <div className="half" style={{ background: apresmidi.color }} />
       </div>
       <span className="day-label" style={{ color: matin.ink }}>{label}</span>
     </>

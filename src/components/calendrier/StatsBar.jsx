@@ -19,12 +19,16 @@ export default function StatsBar({ days, parJour, feries, soldeRepos, anneeSolde
     else { counts[decl.matin] += 0.5; counts[decl.apresmidi] += 0.5; }
   }
 
+  // Le télétravail reste du travail : la tuile « Travaillé » cumule les deux,
+  // la tuile « Télétravail » garde le détail de la part réalisée à distance.
+  const valeurAffichee = (t) => (t === "travaille" ? counts.travaille + counts.teletravail : counts[t]);
+
   return (
     <div className="cal-stats">
       {TYPE_KEYS.map((t) => (
         <div key={t} className="cal-stat">
           <div className="label">{TYPES[t].label}</div>
-          <div className="value">{fmtNum(counts[t])} <small>j.</small></div>
+          <div className="value">{fmtNum(valeurAffichee(t))} <small>j.</small></div>
         </div>
       ))}
       <div className="cal-stat">

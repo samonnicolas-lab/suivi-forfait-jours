@@ -190,8 +190,8 @@ function WeekHalves({ decl }) {
   const apresmidi = TYPES[decl.apresmidi];
   return (
     <div className="halves-row">
-      <div className="half" style={{ background: matin.soft, color: matin.ink }}>{matin.label}</div>
-      <div className="half" style={{ background: apresmidi.soft, color: apresmidi.ink }}>{apresmidi.label}</div>
+      <div className="half" style={{ background: matin.color, color: "#fff" }}>{matin.label}</div>
+      <div className="half" style={{ background: apresmidi.color, color: "#fff" }}>{apresmidi.label}</div>
     </div>
   );
 }
