@@ -60,4 +60,7 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ contratId, jours }),
     }),
+
+  urlExportMois: (contratId, annee, mois) =>
+    `${BASE}/exporter-mois?contratId=${encodeURIComponent(contratId)}&annee=${annee}&mois=${mois}`,
 };

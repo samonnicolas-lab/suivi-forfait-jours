@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../api/client";
 import { useContratActif } from "../hooks/useContratActif";
 import { useJoursFeries } from "../hooks/useJoursFeries";
 import { useJoursDeclares } from "../hooks/useJoursDeclares";
@@ -190,6 +191,16 @@ export default function Calendrier() {
           )}
         </div>
       </div>
+
+      {vue === "mois" && (
+        <a
+          className="btn btn-secondary"
+          href={api.urlExportMois(contratActif.id, y, m + 1)}
+          style={{ alignSelf: "flex-start" }}
+        >
+          Exporter ce mois (Excel)
+        </a>
+      )}
 
       {vue === "annee" ? (
         <VueAnnuelle
