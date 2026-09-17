@@ -39,13 +39,17 @@ Google et à la base de données passent par les fonctions dans `netlify/functio
    (et `http://localhost:8888/api/auth-google?action=callback` pour le dev
    local). Aucune API Google payante n'est appelée : l'authentification reste
    sur le niveau gratuit.
-2. **Netlify DB** : depuis le dashboard du site (onglet « Database » /
-   extension Neon) ou via `netlify db init` en CLI (après `netlify link`).
-   Provisionne une base Neon et injecte automatiquement `NETLIFY_DATABASE_URL`
-   dans les variables d'environnement du site (et en local via `netlify dev`,
-   une fois le site lié). Puis exécuter, dans l'éditeur SQL Neon (accessible
-   depuis le lien fourni par Netlify) : `db/migrations/0001_init.sql` puis
-   `db/migrations/0002_jours_feries_officiels.sql`.
+2. **Netlify DB** : depuis le dashboard du site (Project configuration → Data
+   & storage → Database) ou via `netlify db init` en CLI (après `netlify
+   link`). Provisionne une base Neon et injecte automatiquement `NETLIFY_DB_URL`
+   dans les variables d'environnement des fonctions (nom réel constaté à
+   l'usage — la doc Netlify parle parfois de `NETLIFY_DATABASE_URL`, mais
+   c'est `NETLIFY_DB_URL` qui est effectivement injectée). Attention : l'éditeur
+   SQL intégré au dashboard Netlify ne permet que des requêtes en lecture (ce
+   n'est pas un vrai éditeur de schéma). Pour exécuter `db/migrations/0001_init.sql`
+   puis `db/migrations/0002_jours_feries_officiels.sql`, utiliser la chaîne de
+   connexion « Read and write » (page Database → branche `production` →
+   section Connect) avec `psql` ou un client graphique (TablePlus, DBeaver...).
 3. Copier `.env.example` en `.env` pour le dev local si besoin (`netlify db
    init` peut suffire à tout injecter automatiquement). Variables à
    connaître :
@@ -53,7 +57,7 @@ Google et à la base de données passent par les fonctions dans `netlify/functio
    - `APP_BASE_URL` (URL publique du site)
    - `SESSION_SECRET` (générer avec
      `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
-   - `NETLIFY_DATABASE_URL` (injectée automatiquement par Netlify DB — à ne
+   - `NETLIFY_DB_URL` (injectée automatiquement par Netlify DB — à ne
      renseigner à la main que pour un test hors Netlify)
 
 ## Développement local
