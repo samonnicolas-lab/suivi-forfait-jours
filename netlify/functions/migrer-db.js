@@ -63,6 +63,13 @@ export default async (request) => {
       throw new HttpError(403, "Jeton invalide ou MIGRATION_TOKEN non configuré.");
     }
 
+    if (url.searchParams.get("debug") === "1") {
+      const cles = Object.keys(process.env)
+        .filter((k) => /DATABASE|NEON|NETLIFY_DB|POSTGRES/i.test(k))
+        .sort();
+      return json(200, { cles });
+    }
+
     const sql = getSql();
     for (const statement of STATEMENTS) {
       await sql(statement);
