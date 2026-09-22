@@ -1,7 +1,8 @@
 const BASE = "/api";
+const AUTH_URL = (import.meta.env.VITE_AUTH_URL || "https://auth.carlezia.fr").replace(/\/$/, "");
 
-async function request(path, options = {}) {
-  const res = await fetch(`${BASE}${path}`, {
+async function faireRequete(base, path, options = {}) {
+  const res = await fetch(`${base}${path}`, {
     credentials: "include",
     ...options,
     headers: {
@@ -30,11 +31,23 @@ async function request(path, options = {}) {
   return data;
 }
 
-export const api = {
-  me: () => request("/auth-google?action=me"),
-  logout: () => request("/auth-google?action=logout", { method: "POST" }),
-  loginUrl: "/api/auth-google?action=login",
+const request = (path, options) => faireRequete(BASE, path, options);
+const authRequest = (path, options) => faireRequete(AUTH_URL, path, options);
 
+// Authentification : appels directs au service partagé auth-maison
+// (cookie de session posé sur .carlezia.fr, credentials: "include" requis).
+export const authApi = {
+  me: () => authRequest("/me"),
+  login: (email, password) =>
+    authRequest("/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+  register: (email, password) =>
+    authRequest("/register", { method: "POST", body: JSON.stringify({ email, password }) }),
+  logout: () => authRequest("/logout", { method: "POST" }),
+  demanderReinitialisation: (email) =>
+    authRequest("/password-reset/request", { method: "POST", body: JSON.stringify({ email }) }),
+};
+
+export const api = {
   listerContrats: () => request("/contrats"),
 
   creerContrat: (payload) =>

@@ -1,18 +1,23 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { api } from "../api/client";
+import { authApi } from "../api/client";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [state, setState] = useState({ loading: true, connecte: false, email: null });
+  const [state, setState] = useState({ loading: true, connecte: false, email: null, emailVerifie: false });
 
   const refresh = useCallback(async () => {
     setState((s) => ({ ...s, loading: true }));
     try {
-      const data = await api.me();
-      setState({ loading: false, connecte: !!data.connecte, email: data.email || null });
+      const data = await authApi.me();
+      setState({
+        loading: false,
+        connecte: !!data.authenticated,
+        email: data.email || null,
+        emailVerifie: !!data.emailVerifie,
+      });
     } catch {
-      setState({ loading: false, connecte: false, email: null });
+      setState({ loading: false, connecte: false, email: null, emailVerifie: false });
     }
   }, []);
 
@@ -21,8 +26,8 @@ export function AuthProvider({ children }) {
   }, [refresh]);
 
   const logout = useCallback(async () => {
-    await api.logout();
-    setState({ loading: false, connecte: false, email: null });
+    await authApi.logout();
+    setState({ loading: false, connecte: false, email: null, emailVerifie: false });
   }, []);
 
   return (

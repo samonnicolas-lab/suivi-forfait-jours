@@ -5,17 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "node --watch src/server/index.js",
     "build": "vite build",
+    "start": "node src/server/index.js",
     "lint": "oxlint",
     "preview": "vite preview",
     "generate-icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.9",
-    "@neondatabase/serverless": "^0.10.4",
-    "cookie": "^2.0.1",
     "exceljs": "^4.4.0",
-    "googleapis": "^178.1.1",
+    "express": "^4.21.2",
+    "pg": "^8.13.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3",

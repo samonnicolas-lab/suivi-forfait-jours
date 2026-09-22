@@ -1,0 +1,32 @@
+-- Migration d'architecture : abandon de l'auth Google OAuth / Netlify DB (Neon)
+-- au profit du service partagé auth-maison (self-hébergé, VPS) et d'un Postgres
+-- self-hébergé lui aussi (voir docker-compose.yml).
+--
+-- Le schéma ci-dessous est désormais créé automatiquement au démarrage du
+-- serveur (voir src/server/db.js, `migrer()`, sur le modèle d'auth-maison) :
+-- ce fichier n'a plus besoin d'être exécuté à la main sur une nouvelle base.
+-- Il documente uniquement le changement par rapport à 0001_init.sql :
+--
+--   utilisateur_google_id text  →  utilisateur_id uuid
+--   (identifiant Google du user →  id du compte auth-maison correspondant)
+--
+-- Migration ponctuelle des données existantes (contrats/jours_declares créés
+-- sous l'ancienne auth Google) : script à part, exécuté une fois pendant la
+-- bascule, après avoir importé le dump Neon dans le nouveau Postgres et créé
+-- le compte auth-maison correspondant à l'utilisateur concerné. Squelette :
+--
+--   alter table contrats add column utilisateur_id uuid;
+--   alter table jours_declares add column utilisateur_id uuid;
+--
+--   update contrats set utilisateur_id = '<uuid-auth-maison>'
+--     where utilisateur_google_id = '<ancien-google-id>';
+--   update jours_declares set utilisateur_id = '<uuid-auth-maison>'
+--     where utilisateur_google_id = '<ancien-google-id>';
+--
+--   alter table contrats alter column utilisateur_id set not null;
+--   alter table jours_declares alter column utilisateur_id set not null;
+--   alter table contrats drop column utilisateur_google_id;
+--   alter table jours_declares drop column utilisateur_google_id;
+--
+--   create index if not exists contrats_utilisateur_idx on contrats (utilisateur_id);
+--   create index if not exists jours_declares_utilisateur_idx on jours_declares (utilisateur_id, date);

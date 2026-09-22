@@ -1,5 +1,3 @@
-import { HttpError } from "../http.js";
-
 export const ZONES = new Set([
   "metropole",
   "alsace-moselle",
@@ -25,7 +23,11 @@ async function chargerDepuisCache(sql, zone, annee) {
 
 async function chargerDepuisApi(zone, annee) {
   const res = await fetch(`https://calendrier.api.gouv.fr/jours-feries/${zone}/${annee}.json`);
-  if (!res.ok) throw new HttpError(502, "L'API des jours fériés officiels est indisponible.");
+  if (!res.ok) {
+    const err = new Error("L'API des jours fériés officiels est indisponible.");
+    err.status = 502;
+    throw err;
+  }
   const data = await res.json();
   return Object.entries(data).map(([date, libelle]) => ({ date, libelle }));
 }
