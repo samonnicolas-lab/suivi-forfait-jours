@@ -102,7 +102,7 @@ export default function Connexion() {
           </button>
         </form>
 
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, fontSize: 13 }}>
           <button
             type="button"
             className="btn-link"
