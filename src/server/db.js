@@ -66,5 +66,10 @@ export async function migrer() {
       libelle text not null,
       primary key (zone, date)
     );
+
+    create table if not exists preferences_utilisateur (
+      utilisateur_id uuid primary key,
+      onboarding_vu boolean not null default false
+    );
   `);
 }

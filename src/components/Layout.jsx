@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
+import { api } from "../api/client";
+import OnboardingModal from "./OnboardingModal";
 
 const TABS = [
   { to: "/", label: "Calendrier", icon: "📅", end: true },
@@ -9,6 +12,15 @@ const TABS = [
 ];
 
 export default function Layout() {
+  const [afficherOnboarding, setAfficherOnboarding] = useState(false);
+
+  useEffect(() => {
+    api
+      .lirePreferences()
+      .then((data) => setAfficherOnboarding(!data.onboardingVu))
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="app-shell">
       <main className="app-content">
@@ -27,6 +39,7 @@ export default function Layout() {
           </NavLink>
         ))}
       </nav>
+      {afficherOnboarding && <OnboardingModal onFermer={() => setAfficherOnboarding(false)} />}
     </div>
   );
 }
