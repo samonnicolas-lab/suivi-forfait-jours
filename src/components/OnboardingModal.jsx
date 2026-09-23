@@ -21,14 +21,8 @@ const ETAPES = [
       "Dans le Calendrier ou la vue Semaine, cliquez sur une journée pour indiquer matin et après-midi : travaillé, télétravail, congé, maladie, récupération ou repos.",
   },
   {
-    icone: "🧮",
-    titre: "3. Suivez votre solde",
-    texte:
-      "Votre solde de jours de repos se calcule automatiquement à partir de vos déclarations et des jours fériés officiels.",
-  },
-  {
     icone: "📤",
-    titre: "4. Exportez",
+    titre: "3. Exportez",
     texte: "Depuis l'onglet Export, téléchargez un récapitulatif Excel de votre mois en un clic.",
   },
 ];
