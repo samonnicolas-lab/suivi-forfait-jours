@@ -45,6 +45,8 @@ export const authApi = {
   logout: () => authRequest("/logout", { method: "POST" }),
   demanderReinitialisation: (email) =>
     authRequest("/password-reset/request", { method: "POST", body: JSON.stringify({ email }) }),
+  signalerProbleme: (message) =>
+    authRequest("/signalements", { method: "POST", body: JSON.stringify({ message }) }),
 };
 
 export const api = {

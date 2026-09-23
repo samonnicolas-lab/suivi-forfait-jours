@@ -217,13 +217,19 @@ a {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 9px 11px;
   font-size: 14px;
   background: var(--color-surface);
   color: var(--color-text);
+}
+
+.field textarea {
+  font-family: inherit;
+  resize: vertical;
 }
 
 .field-row {
