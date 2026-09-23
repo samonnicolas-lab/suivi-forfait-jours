@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import ChampMotDePasse from "../components/ChampMotDePasse";
 
 export default function Connexion() {
   const navigate = useNavigate();
@@ -84,18 +85,14 @@ export default function Connexion() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className="field">
-            <label htmlFor="password">Mot de passe</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete={mode === "register" ? "new-password" : "current-password"}
-              minLength={8}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <ChampMotDePasse
+            id="password"
+            autoComplete={mode === "register" ? "new-password" : "current-password"}
+            minLength={8}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
           <button type="submit" className="btn btn-primary btn-block" disabled={enCours}>
             {mode === "register" ? "Créer mon compte" : "Se connecter"}

@@ -232,6 +232,34 @@ a {
   gap: 8px;
 }
 
+.champ-mdp {
+  position: relative;
+}
+
+.champ-mdp input {
+  width: 100%;
+  padding-right: 38px;
+  box-sizing: border-box;
+}
+
+.toggle-mdp {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  display: flex;
+  color: var(--color-text-muted);
+}
+
+.toggle-mdp svg {
+  width: 19px;
+  height: 19px;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
