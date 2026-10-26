@@ -7,6 +7,7 @@ import contratsRouter from "./routes/contrats.js";
 import joursDeclaresRouter from "./routes/joursDeclares.js";
 import joursFeriesRouter from "./routes/joursFeries.js";
 import exporterMoisRouter from "./routes/exporterMois.js";
+import exporterSemainesRouter from "./routes/exporterSemaines.js";
 import preferencesRouter from "./routes/preferences.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,6 +24,7 @@ app.use("/api/contrats", requireSession, contratsRouter);
 app.use("/api/jours-declares", requireSession, joursDeclaresRouter);
 app.use("/api/jours-feries", requireSession, joursFeriesRouter);
 app.use("/api/exporter-mois", requireSession, exporterMoisRouter);
+app.use("/api/exporter-semaines", requireSession, exporterSemainesRouter);
 app.use("/api/preferences", requireSession, preferencesRouter);
 
 // Fichiers statiques du build Vite, avec repli sur index.html pour les

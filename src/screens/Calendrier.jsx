@@ -6,6 +6,7 @@ import { useJoursFeries } from "../hooks/useJoursFeries";
 import { useJoursDeclares } from "../hooks/useJoursDeclares";
 import JourDrawer from "../components/calendrier/JourDrawer";
 import SelectionBar from "../components/calendrier/SelectionBar";
+import WeekExportBar from "../components/calendrier/WeekExportBar";
 import MultiSelectToggle from "../components/calendrier/MultiSelectToggle";
 import StatsBar from "../components/calendrier/StatsBar";
 import Legend from "../components/calendrier/Legend";
@@ -33,6 +34,8 @@ export default function Calendrier() {
   });
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedSet, setSelectedSet] = useState(new Set());
+  const [weekExportMode, setWeekExportMode] = useState(false);
+  const [selectedWeeks, setSelectedWeeks] = useState(new Set());
   const [drawerTargets, setDrawerTargets] = useState([]);
   const [vue, setVue] = useState("mois");
 
@@ -126,6 +129,29 @@ export default function Calendrier() {
     });
   }
 
+  function toggleMultiSelectMode() {
+    setMultiSelectMode((v) => !v);
+    setSelectedSet(new Set());
+    setWeekExportMode(false);
+    setSelectedWeeks(new Set());
+  }
+
+  function toggleWeekExportMode() {
+    setWeekExportMode((v) => !v);
+    setSelectedWeeks(new Set());
+    setMultiSelectMode(false);
+    setSelectedSet(new Set());
+  }
+
+  function toggleWeekExportSelection(rowStart) {
+    const k = dateKey(rowStart);
+    setSelectedWeeks((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k); else next.add(k);
+      return next;
+    });
+  }
+
   function handleDayClick(d) {
     if (multiSelectMode) { toggleDaySelection(d); return; }
     setDrawerTargets([d]);
@@ -161,11 +187,19 @@ export default function Calendrier() {
       <StatsBar days={joursStats} parJour={parJour} feries={feries} />
 
       {vue === "mois" && (
-        <MultiSelectToggle
-          active={multiSelectMode}
-          onToggle={() => { setMultiSelectMode((v) => !v); setSelectedSet(new Set()); }}
-          hint="Cochez plusieurs jours (ou le n° de semaine pour tout cocher en semaine) pour leur appliquer le même statut"
-        />
+        <>
+          <MultiSelectToggle
+            active={multiSelectMode}
+            onToggle={toggleMultiSelectMode}
+            hint="Cochez plusieurs jours (ou le n° de semaine pour tout cocher en semaine) pour leur appliquer le même statut"
+          />
+          <MultiSelectToggle
+            label="Export par semaines"
+            active={weekExportMode}
+            onToggle={toggleWeekExportMode}
+            hint="Cochez le n° des semaines à inclure dans l'export Excel (plusieurs mois possibles)"
+          />
+        </>
       )}
 
       <div className="gran-toggle">
@@ -224,8 +258,11 @@ export default function Calendrier() {
                 parJour={parJour}
                 selectedSet={selectedSet}
                 multiSelectMode={multiSelectMode}
+                weekExportMode={weekExportMode}
+                selectedWeeks={selectedWeeks}
                 onDayClick={handleDayClick}
                 onWeekNumClick={selectWeekRow}
+                onWeekExportClick={toggleWeekExportSelection}
               />
             ))}
           </div>
@@ -237,6 +274,12 @@ export default function Calendrier() {
             onSelectAll={selectAllVisible}
             onCancel={() => setSelectedSet(new Set())}
             onApply={() => setDrawerTargets(Array.from(selectedSet).map(parseKey))}
+          />
+
+          <WeekExportBar
+            count={selectedWeeks.size}
+            exportHref={api.urlExportSemaines(contratActif.id, Array.from(selectedWeeks).sort())}
+            onCancel={() => setSelectedWeeks(new Set())}
           />
 
           <JourDrawer
@@ -252,17 +295,33 @@ export default function Calendrier() {
   );
 }
 
-function FragmentRow({ rowStart, month, today, feries, parJour, selectedSet, multiSelectMode, onDayClick, onWeekNumClick }) {
+function FragmentRow({
+  rowStart, month, today, feries, parJour, selectedSet, multiSelectMode,
+  weekExportMode, selectedWeeks, onDayClick, onWeekNumClick, onWeekExportClick,
+}) {
   const cells = [];
   for (let i = 0; i < 7; i++) cells.push(addDays(rowStart, i));
 
+  const weekSelected = weekExportMode && selectedWeeks.has(dateKey(rowStart));
+  const wkCls = [
+    "wk-num",
+    (multiSelectMode || weekExportMode) && "selectable",
+    weekSelected && "wk-selected",
+  ].filter(Boolean).join(" ");
+  const wkTitle = multiSelectMode
+    ? "Cocher les jours ouvrés de la semaine (hors samedi/dimanche)"
+    : weekExportMode
+      ? "Cocher cette semaine pour l'export Excel"
+      : "";
+  const onWkClick = multiSelectMode
+    ? () => onWeekNumClick(rowStart)
+    : weekExportMode
+      ? () => onWeekExportClick(rowStart)
+      : undefined;
+
   return (
     <>
-      <div
-        className={`wk-num${multiSelectMode ? " selectable" : ""}`}
-        title={multiSelectMode ? "Cocher les jours ouvrés de la semaine (hors samedi/dimanche)" : ""}
-        onClick={multiSelectMode ? () => onWeekNumClick(rowStart) : undefined}
-      >
+      <div className={wkCls} title={wkTitle} onClick={onWkClick}>
         {getISOWeek(rowStart)}
       </div>
       {cells.map((d) => {

@@ -554,6 +554,17 @@ a {
   color: var(--color-primary-dark);
 }
 
+.wk-num.wk-selected {
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.wk-num.wk-selected:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
 .day {
   position: relative;
   min-height: 56px;
