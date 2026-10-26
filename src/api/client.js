@@ -79,6 +79,9 @@ export const api = {
   urlExportMois: (contratId, annee, mois) =>
     `${BASE}/exporter-mois?contratId=${encodeURIComponent(contratId)}&annee=${annee}&mois=${mois}`,
 
+  urlExportSemaines: (contratId, lundis) =>
+    `${BASE}/exporter-semaines?contratId=${encodeURIComponent(contratId)}&semaines=${lundis.join(",")}`,
+
   lirePreferences: () => request("/preferences"),
   marquerOnboardingVu: () =>
     request("/preferences", { method: "POST", body: JSON.stringify({ onboardingVu: true }) }),

@@ -6,9 +6,16 @@ export default function Export() {
       <h1>Export</h1>
       <div className="card">
         <p>
-          L'export Excel (données du mois + récap par type de jour) se fait depuis l'écran{" "}
-          <Link to="/">Calendrier</Link>, via le bouton « Exporter ce mois » en vue mensuelle.
+          L'export Excel (données + récap par type de jour) se fait depuis l'écran{" "}
+          <Link to="/">Calendrier</Link>, en vue mensuelle :
         </p>
+        <ul>
+          <li>Bouton « Exporter ce mois » pour exporter le mois affiché en entier.</li>
+          <li>
+            Bascule « Export par semaines » pour cocher une ou plusieurs semaines précises
+            (même sur des mois différents) et n'exporter qu'elles.
+          </li>
+        </ul>
         <p className="text-muted text-small">Export PDF (calendrier visuel) à venir.</p>
       </div>
     </div>
